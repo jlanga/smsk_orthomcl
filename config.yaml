@@ -1,0 +1,34 @@
+species:
+    char:
+        code: char
+        fasta: data/transcriptomes/char.fasta
+    eenc:
+        code: eenc
+        fasta: data/transcriptomes/eenc.fasta
+    erin:
+        code: erin
+        fasta: data/transcriptomes/erin.fasta
+    ssco:
+        code: ssco
+        fasta: data/transcriptomes/ssco.fasta
+    tthy:
+        code: tthy
+        fasta: data/transcriptomes/tthy.fasta
+
+
+databases:
+    swissprot:
+        url: ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.fasta.gz
+    uniref90:
+        url: ftp://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref90/uniref90.fasta.gz
+    pfama:
+        url: ftp://ftp.ebi.ac.uk/pub/databases/Pfam/releases/Pfam30.0/Pfam-A.hmm.gz
+
+
+params:
+    transdecoder:
+        blastp:
+            evalue: 1e-5
+            max_target_seqs: 1
+        hmmscan:
+        predict:

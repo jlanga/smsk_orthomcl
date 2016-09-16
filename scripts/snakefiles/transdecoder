@@ -1,0 +1,124 @@
+rule transdecoder_longorfs_species: ##transcriptome.fa.transdecoder_dir/{bunch of files} - Predicted ORFs
+    input:
+        fasta = raw_dir + "{species}.fasta"
+    output:
+        base_freqs = temp(
+            "{species}.fasta.transdecoder_dir/base_freqs.dat"
+        ),
+        base_freqs_ok = temp(
+            "{species}.fasta.transdecoder_dir/base_freqs.dat.ok"
+        ),
+        cds = temp(
+            "{species}.fasta.transdecoder_dir/longest_orfs.cds"
+        ),
+        gff3 = temp(
+            "{species}.fasta.transdecoder_dir/longest_orfs.gff3"
+        ),
+        pep = temp(
+            "{species}.fasta.transdecoder_dir/longest_orfs.pep"
+        ),
+        dir = temp(
+            "{species}.fasta.transdecoder_dir/"
+        )
+    threads:
+        24
+    log:
+        transdecoder_doc + "longorfs_{species}.log"
+    benchmark:
+        transdecoder_doc + "longorfs_{species}.json"
+    shell:
+        "TransDecoder.LongOrfs "
+            "-t {input.fasta} "
+        "2> {log} 1>&2"
+
+
+
+
+rule transdecoder_hmmscan_pfama_species: ##data/transdecoder/pfama.tsv - hmmscan results
+    input:
+        pep = "{species}.fasta.transdecoder_dir/longest_orfs.pep",
+        hmm = db_dir + "pfama.hmm"
+    output:
+        tsv = transdecoder_dir + "pfama_{species}.tsv"
+    threads:
+        4
+    log:
+        transdecoder_doc + "hmmscan_pfama_{species}.log"
+    benchmark:
+        transdecoder_doc + "hmmscan_pfama_{species}.json"
+    shell:
+        "hmmscan "
+            "--cpu {threads} "
+            "--domtblout {output.tsv} "
+            "{input.hmm} "
+            "{input.pep} "
+        "2> {log} 1>&2"
+
+
+
+rule transdecoder_blastp_uniref90_species:
+    input:
+        pep = "{species}.fasta.transdecoder_dir/longest_orfs.pep",
+        db = db_dir + "uniref90"
+    output:
+        tsv = transdecoder_dir + "uniref90_{species}.tsv"
+    threads:
+        24
+    params:
+        evalue = config["params"]["transdecoder"]["blastp"]["evalue"],
+        max_target_seqs = config["params"]["transdecoder"]["blastp"]["max_target_seqs"]
+    log:
+        transdecoder_doc + "blastp_uniref90_{species}.log"
+    benchmark:
+        transdecoder_doc + "blastp_uniref90_{species}.json"
+    shell:
+        "blastp "
+            "-query {input.pep} "
+            "-db {input.db} "
+            "-max_target_seqs {params.max_target_seqs} "
+            "-outfmt 6 "
+            "-evalue {params.evalue} "
+            "-num_threads {threads} "
+            "-out {output.tsv} "
+        "2> {log} 1>&2"
+
+
+
+rule transdecoder_predict_species:
+    input:
+        fasta = raw_dir + "{species}.fasta",
+        pfam_tsv = transdecoder_dir + "pfama_{species}.tsv",
+        blastp_tsv = transdecoder_dir + "uniref90_{species}.tsv",
+        folder = "{species}.fasta.transdecoder_dir/"
+    output:
+        bed  = transdecoder_dir + "{species}.bed",
+        cds  = transdecoder_dir + "{species}.cds",
+        gff3 = transdecoder_dir + "{species}.gff3",
+        mRNA = transdecoder_dir + "{species}.mRNA",
+        pep  = transdecoder_dir + "{species}.pep",
+    params:
+        dir = "{species}.fasta.transdecoder_dir/",
+        bed  = "{species}.fasta.transdecoder.bed",
+        cds  = "{species}.fasta.transdecoder.cds",
+        gff3 = "{species}.fasta.transdecoder.gff3",
+        mRNA = "{species}.fasta.transdecoder.mRNA",
+        pep  = "{species}.fasta.transdecoder.pep",
+    threads:
+        999999 # All you have
+    log:
+        transdecoder_doc + "predict_{species}.log"
+    benchmark:
+        transdecoder_doc + "predict_{species}.json"
+    shell:
+        "TransDecoder.Predict "
+            "-t {input.fasta} "
+            "--retain_pfam_hits {input.pfam_tsv} "
+            "--retain_blastp_hits {input.pfam_tsv} "
+            "--cpu {threads} "
+        "2> {log} 1>&2 ; "
+        "mv {params.bed} {output.bed} 2>> {log} 1>&2 ; "
+        "mv {params.cds} {output.cds} 2>> {log} 1>&2 ; "
+        "mv {params.gff3} {output.gff3} 2>> {log} 1>&2 ; "
+        "mv {params.mRNA} {output.mRNA} 2>> {log} 1>&2 ; "
+        "mv {params.pep} {output.pep} 2>> {log} 1>&2 ; "
+        "rm -rf {params.dir} 2>> {log} 1>&2"

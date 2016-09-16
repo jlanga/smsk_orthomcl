@@ -1,0 +1,20 @@
+raw_dir= "results/transcriptome/"
+raw_doc= "doc/transcriptome/"
+
+download_dir = "data/downloads/"
+download_doc = "doc/downloads/"
+
+db_dir = "data/db/"
+db_doc = "doc/db/"
+
+transdecoder_dir = "results/transdecoder/"
+transdecoder_doc = "doc/transdecoder/"
+
+proteome_dir= "results/proteome/"
+proteome_doc= "doc/proteome/"
+
+blast_dir = "results/blast/"
+blast_doc = "doc/blast/"
+
+orthomcl_dir= "results/orthomcl/"
+orthomcl_doc= "doc/orthomcl/"

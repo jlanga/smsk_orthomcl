@@ -1,0 +1,9 @@
+rule clean_raw:
+    shell:
+        "rm -ri "
+            "{raw_dir} {raw_doc} "
+
+
+rule clean:
+    shell:
+        "rm -rf {raw_dir} {raw_doc} "

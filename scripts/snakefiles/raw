@@ -1,0 +1,17 @@
+rule make_link_species:
+    output:
+        fasta= raw_dir + "{species}.fasta"
+    threads:
+        1
+    log:
+        raw_doc + "make_link_{species}.log"
+    benchmark:
+        raw_doc + "make_link_{species}.json"
+    params:
+        original_file= lambda wildcards: config["species"][wildcards.species]["fasta"]
+    shell:
+        "ln -s "
+            "$(readlink -f {params.original_file}) "
+            "{output.fasta} "
+        "2> {log} "
+        "1>&2"
