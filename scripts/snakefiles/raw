@@ -1,4 +1,4 @@
-rule make_link_species:
+rule raw_make_link_species:
     output:
         fasta= raw_dir + "{species}.fasta"
     threads:
@@ -15,3 +15,27 @@ rule make_link_species:
             "{output.fasta} "
         "2> {log} "
         "1>&2"
+
+
+rule raw_dowload_species:
+    output:
+        fasta = protected(
+            "data/transcriptomes/" + "{species}.fasta"
+        )
+    params:
+        url = lambda wildcards: config["species"][wildcards.species]["url"]
+    threads:
+        1
+    log:
+        raw_doc + "download_{species}.log"
+    benchmark:
+        raw_doc + "download_{species}.json"
+    shell:
+        "( wget "
+            "--output-document - "
+            "{params.url} | "
+        "pigz "
+            "--decompress "
+            "--stdout "
+        "> {output.fasta} ) "
+        "2> {log}"

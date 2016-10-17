@@ -1,0 +1,154 @@
+rule orthomcl_adjust_fasta_species:
+    input:
+        pep = transdecoder_dir + "{species}.pep"
+    output:
+        fasta = protected(
+            orthomcl_dir + "compliant_fasta/{species}.fasta"
+        )
+    params:
+        field = config["params"]["orthomcl"]["adjust_fasta"]["field"],
+        out_dir = orthomcl_dir + "compliant_fasta/",
+        species = "{species}"
+    log:
+        orthomcl_doc + "adjust_fasta_{species}.log"
+    benchmark:
+        orthomcl_doc + "adjust_fasta_{species}.json"
+    threads:
+        1
+    shell:
+        "temp_file=$(mktemp) 2> {log} ; "
+        "tr \| _ < {input.pep} > $temp_file 2>> {log} ; "
+        "./src/orthomclSoftware-v2.0.9/bin/orthomclAdjustFasta "
+            "{params.species} "
+            "$temp_file "
+            "{params.field} "
+        "2>> {log} ; "
+        "mv {params.species}.fasta {params.out_dir} 2>> {log} ; "
+        "rm $temp_file"
+
+
+
+# make a rule to create temporary links to compliant_fasta to be analyzed
+
+
+
+rule orthomcl_filter_fasta:
+    input:
+        fasta = expand(
+            orthomcl_dir + "compliant_fasta/{species}.fasta",
+            species = config["species"]
+        )
+    output:
+        fasta_good = protected(
+            orthomcl_dir + "proteomes_filtered/goodProteins.fasta"
+        ),
+        fasta_poor = protected(
+            orthomcl_dir + "proteomes_filtered/poorProteins.fasta"
+        )
+    params:
+        in_dir = orthomcl_dir + "compliant_fasta/",
+        min_length = config["params"]["orthomcl"]["filter_fasta"]["min_length"],
+        max_percent_stop = config["params"]["orthomcl"]["filter_fasta"]["max_percent_stop"]
+    log:
+        orthomcl_doc + "filter_fasta.log"
+    benchmark:
+        orthomcl_doc + "filter_fasta.json"
+    shell:
+        "./src/orthomclSoftware-v2.0.9/bin/orthomclFilterFasta "
+            "{params.in_dir} "
+            "{params.min_length} "
+            "{params.max_percent_stop} "
+            "{output.fasta_good} "
+            "{output.fasta_poor} "
+        "2> {log} 1>&2"
+
+
+
+rule orthomcl_formatdb_good_proteins:
+    input:
+        fasta_good = orthomcl_dir + "proteomes_filtered/goodProteins.fasta"
+    output:
+        db = touch(
+            orthomcl_dir + "blast_db/goodProteins"
+        )
+    threads:
+        1
+    log:
+        orthomcl_doc + "formatdb_good_proteins.log"
+    benchmark:
+        orthomcl_doc + "formatdb_good_proteins.json"
+    shell:
+        "formatdb "
+            "-i {input.fasta_good} "
+            "-n {output.db} "
+            "-l {log} "
+            "-p T "
+        "2>> {log} 1>&2"
+
+
+
+rule orthomcl_blastall:
+    input:
+        fasta_good= orthomcl_dir + "proteomes_filtered/goodProteins.fasta",
+        db= orthomcl_dir + "blast_db/goodProteins"
+    output:
+        tsv_gz= protected(
+            orthomcl_dir + "blastall/results.txt.gz"
+        )
+    threads:
+        24
+    params:
+        evalue = config["params"]["orthomcl"]["blastall"]["evalue"]
+    log:
+        orthomcl_doc + "blastall.log"
+    benchmark:
+        orthomcl_doc + "blastall.json"
+    shell:
+        "( cat {input.fasta_good} | "
+        # "blastall "
+        #     "-p blastp "
+        #     "-d {input.db} "
+        #     "-e {params.evalue} "
+        #     "-a {threads} "
+        #     "-m 8 "
+        #     "-F \'m S \' "
+        #     "-v 100000 "
+        #     "-b 100000 | "
+        "parallel "
+           "--jobs {threads} "
+           "--pipe "
+           "--recstart \">\" "
+           "--keep-order "
+           "--block 100k "
+           "blastall "
+               "-p blastp "
+               "-d {input.db} "
+               "-e {params.evalue} "
+               "-m 8 "
+               "-F \'m\ S\' "
+               "-v 100000 "
+               "-b 100000  | "
+        "pigz -9 > {output.tsv_gz} ) "
+        "2> {log}"
+
+
+
+rule orthomcl_parse_blast:
+    input:
+        tsv_gz= orthomcl_dir + "blastall/results.txt.gz"
+    output:
+        tsv_gz= orthomcl_dir + "blastp_parsed/similarSequences.txt.gz"
+    threads:
+        1
+    params:
+        in_folder = orthomcl_dir + "compliant_fasta/"
+    log:
+        orthomcl_doc + "parse_blast.log"
+    benchmark:
+        orthomcl_doc + "parse_blast.json"
+    shell:
+        "( ./src/orthomclSoftware-v2.0.9/bin/orthomclBlastParser "
+            "<(pigz --decompress --stdout {input.tsv_gz}) "
+            "{params.in_folder} | "
+        "pigz -9 > {output.tsv_gz} ) "
+        "2> {log}"

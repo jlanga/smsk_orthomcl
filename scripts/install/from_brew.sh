@@ -12,16 +12,10 @@ brew install \
 
 # Homebrew packages for mysql
 brew install \
-    cmake --without-docs \
-
-brew install \
-    homebrew/dupes/libedit \
-    mysql
-
+    docker
 
 brew tap homebrew/science
 brew install \
-    homebrew/science/transdecoder \
     homebrew/science/blast \
     homebrew/science/hmmer \
     homebrew/science/mcl \

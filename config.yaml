@@ -1,20 +1,53 @@
 species:
-    char:
-        code: char
-        fasta: data/transcriptomes/char.fasta
-    eenc:
-        code: eenc
-        fasta: data/transcriptomes/eenc.fasta
-    erin:
-        code: erin
-        fasta: data/transcriptomes/erin.fasta
-    ssco:
-        code: ssco
-        fasta: data/transcriptomes/ssco.fasta
-    tthy:
-        code: tthy
-        fasta: data/transcriptomes/tthy.fasta
-
+    aalo:
+        fasta: data/transcriptomes/aalo.fasta
+        name: "Alosa alosa"
+    btyr:
+        fasta: data/transcriptomes/btyr.fasta
+        name: "Brevoortia tyrannus"
+    spil:
+        fasta: data/transcriptomes/spil.fasta
+        name: "Sardina pilchardus"
+    amex:
+        fasta: data/transcriptomes/amex.fasta
+        url: ftp://ftp.ensembl.org/pub/release-85/fasta/astyanax_mexicanus/cdna/Astyanax_mexicanus.AstMex102.cdna.all.fa.gz
+        name: "Astyanax mexicanus"
+    gmor:
+        fasta: data/transcriptomes/gmor.fasta
+        url: ftp://ftp.ensembl.org/pub/release-85/fasta/gadus_morhua/cdna/Gadus_morhua.gadMor1.cdna.all.fa.gz
+        name: "Gadus morhua"
+    trur:
+        fasta: data/transcriptomes/trur.fasta
+        url: ftp://ftp.ensembl.org/pub/release-85/fasta/takifugu_rubripes/cdna/Takifugu_rubripes.FUGU4.cdna.all.fa.gz
+        name: "Takifugu rubripes"
+    orap:
+        fasta: data/transcriptomes/orap.fasta
+        url: ftp://ftp.ensembl.org/pub/release-85/fasta/oryzias_latipes/cdna/Oryzias_latipes.MEDAKA1.cdna.all.fa.gz
+        name: "Oryzias latipes"
+    xmac:
+        fasta: data/transcriptomes/xmac.fasta
+        url: ftp://ftp.ensembl.org/pub/release-85/fasta/xiphophorus_maculatus/cdna/Xiphophorus_maculatus.Xipmac4.4.2.cdna.all.fa.gz
+        name: "Xiphophorus maculatus"
+    locu:
+        fasta: data/transcriptomes/locu.fasta
+        url: ftp://ftp.ensembl.org/pub/release-85/fasta/lepisosteus_oculatus/cdna/Lepisosteus_oculatus.LepOcu1.cdna.all.fa.gz
+        name: "Lepisosteus oculatus"
+    gacu:
+        fasta: data/transcriptomes/gacu.fasta
+        url: ftp://ftp.ensembl.org/pub/release-85/fasta/gasterosteus_aculeatus/cdna/Gasterosteus_aculeatus.BROADS1.cdna.all.fa.gz
+        name: "Gasterosteus aculeatus"
+    tnig:
+        fasta: data/transcriptomes/tnig.fasta
+        url: ftp://ftp.ensembl.org/pub/release-85/fasta/tetraodon_nigroviridis/cdna/Tetraodon_nigroviridis.TETRAODON8.cdna.all.fa.gz
+        name: "Tetraodon nigroviridis"
+    onil:
+        fasta: data/transcriptomes/onil.fasta
+        url: ftp://ftp.ensembl.org/pub/release-85/fasta/oreochromis_niloticus/cdna/Oreochromis_niloticus.Orenil1.0.cdna.all.fa.gz
+        name: "Oreochromis niloticus"
+    drer:
+        fasta: data/transcriptomes/drer.fasta
+        url: ftp://ftp.ensembl.org/pub/release-85/fasta/danio_rerio/cdna/Danio_rerio.GRCz10.cdna.all.fa.gz
+        name: "Danio rerio"
 
 databases:
     swissprot:
@@ -28,7 +61,16 @@ databases:
 params:
     transdecoder:
         blastp:
+            database: swissprot # or uniref90
             evalue: 1e-5
             max_target_seqs: 1
         hmmscan:
         predict:
+    orthomcl:
+        adjust_fasta:
+            field: 1
+        filter_fasta:
+            min_length: 10
+            max_percent_stop: 20
+        blastall:
+            evalue: 1e-5
