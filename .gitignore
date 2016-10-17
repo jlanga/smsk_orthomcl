@@ -3,3 +3,17 @@
 bin/py3/
 results/*
 doc/*
+bin/bl2seq
+bin/blastall
+bin/blastclust
+bin/blastpgp
+bin/copymat
+bin/fastacmd
+bin/formatdb
+bin/formatrpsdb
+bin/impala
+bin/makemat
+bin/megablast
+bin/rpsblast
+bin/seedtop
+
